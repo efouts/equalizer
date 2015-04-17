@@ -2,11 +2,9 @@
 var output = document.getElementById('output');
 var canvas = document.getElementById('equalizerCanvas');
 var canvasContext = canvas.getContext('2d');
-var color = 'rgba(88, 197, 67, 0.3)';
 var filesDropped = null;
 var audioIndex = 0;
-var sampleSize = 5;
-
+var sampleSize = 15;
 var audio = document.createElement('audio');
 var audioContext = new AudioContext();
 var animationFrame = null;
@@ -81,26 +79,29 @@ function renderFrame (audio, analyser) {
   var frequencyData = new Uint8Array(analyser.frequencyBinCount);
   analyser.getByteFrequencyData(frequencyData);
   frequencyData = reduce(frequencyData, canvas.width / sampleSize);
-  
+
   var columnWidth = canvas.width / frequencyData.length;
   var columnHeight = canvas.height / 255;
   
-  canvasContext.clearRect(0, 0, canvas.width, canvas.height);
-  canvasContext.fillStyle = 'rgba(0, 0, 0, 0.3)';
-  canvasContext.strokeStyle = color;
+  canvas.width = canvas.width;
   canvasContext.lineCap = 'round';
 
   canvasContext.beginPath();
   canvasContext.moveTo(0, canvas.height);
 
-  for (var i = 1; i < frequencyData.length; i++) {
-    canvasContext.lineTo(i * columnWidth, canvas.height - 10 - frequencyData[i] * columnHeight);
+  var g = canvasContext.createLinearGradient(0, 255 * columnHeight, 0, 0); 
+  g.addColorStop(0, '#ffff00');
+  g.addColorStop(1, '#ff0000');
+  canvasContext.fillStyle = g;   
+
+  for (var i = 0; i < frequencyData.length; i++) {
+    canvasContext.fillRect(i * columnWidth, canvas.height - 5 - frequencyData[i] * columnHeight, columnWidth, 5 + frequencyData[i] * columnHeight);
   }
-  canvasContext.lineTo(canvas.width, canvas.height);
+
   canvasContext.closePath();
   canvasContext.fill();
   canvasContext.stroke();
-  
+
   animationFrame = requestAnimationFrame(function () {
     renderFrame(audio, analyser);
   });
@@ -174,14 +175,6 @@ function askForDrop() {
   $('h1').html('Equalizer - Drop a Tune!');
   $('#seekControl').val(0);
 }
-
-setInterval(function() {
-  var r = getRandomNumberBetween(0, 256);
-  var g = getRandomNumberBetween(0, 256);
-  var b = getRandomNumberBetween(0, 256);
-
-  color = 'rgba(' + r + ', ' + g + ', ' + b + ', 0.6)';
-}, 3000);
 
 function getRandomNumberBetween(from, to) {
   return Math.floor((Math.random() * to) + from + 1);
